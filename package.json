@@ -1,0 +1,9 @@
+{
+  "name": "mqt",
+  "version": "1.0.0-PRE",
+  "description": "Like mqtt, but more succint",
+  "main": "index.js",
+  "repository": "git@github.com:benfoxall/mqt.git",
+  "author": "Ben Foxall <benfoxall@gmail.com>",
+  "license": "MIT"
+}
