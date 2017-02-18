@@ -5,5 +5,8 @@
   "main": "index.js",
   "repository": "git@github.com:benfoxall/mqt.git",
   "author": "Ben Foxall <benfoxall@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "paho-client": "^1.0.1"
+  }
 }
