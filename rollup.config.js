@@ -1,5 +1,6 @@
 import commonjs from 'rollup-plugin-commonjs'
 import replace from 'rollup-plugin-re'
+import buble from 'rollup-plugin-buble';
 
 export default {
   entry: 'index.js',
@@ -19,6 +20,9 @@ export default {
           replace: '		var wireMessage = new'
         }
       ]
+    }),
+    buble({
+      exclude: [ 'node_modules/**' ]
     })
   ],
   moduleName: 'MQT',
