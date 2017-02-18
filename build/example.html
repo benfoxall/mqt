@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Example</title>
+  </head>
+  <body>
+    <script src="mqt.js"></script>
+    <script type="text/javascript">
+
+      var mqt = new MQT()
+
+      mqt.subscribe('/foo', message => {
+        console.log('MQT GOT', message)
+      })
+
+      mqt.publish('/foo', {hello: "world"})
+
+
+      /*
+      mqt.subscribe('/time', message => {
+        console.log('TIMER', message)
+        console.timeEnd('message')
+      })
+
+      console.time('message')
+      mqt.publish('/time', {hello: "world"})
+      */
+
+    </script>
+  </body>
+</html>
