@@ -1,2 +1,2 @@
 # mqt
-Like mqtt, but more succint
+Like mqtt, but more succinct
