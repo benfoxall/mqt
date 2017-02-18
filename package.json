@@ -7,6 +7,9 @@
   "author": "Ben Foxall <benfoxall@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "paho-client": "^1.0.1"
+    "paho-client": "^1.0.1",
+    "rollup": "^0.41.4",
+    "rollup-plugin-commonjs": "^7.0.0",
+    "rollup-plugin-re": "^1.0.1"
   }
 }
