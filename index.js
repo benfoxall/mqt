@@ -1,15 +1,24 @@
 import Paho from './node_modules/paho-client/src/mqttws31.js'
+import debug from 'debug'
+
+// enable with localStorage.debug = '*'
+const mtq_debug = debug('MQT')
+const paho_debug = debug('MQT:PAHO')
 
 export default function MQT(_host) {
 
   const _subs = []
   const _outbox = []
 
-  var host = _host || 'localhost'
-  var port = 9001
+  const host_parts = _host.replace(/wss?:\/\//,'').split(':')
+
+  var host = host_parts[0] || 'localhost'
+  var port = parseInt(host_parts[1]) || 8083
   var clientID = 'mqt_' + Math.random().toString(32).substr(2,5)
 
-  const client = window.client = new Paho.MQTT.Client(host, port, clientID)
+  mtq_debug(`Connecting to host=${host} port=${port}`)
+
+  const client = new Paho.MQTT.Client(host, port, clientID)
 
   // set callback handlers
   client.onConnectionLost = onConnectionLost
@@ -21,8 +30,8 @@ export default function MQT(_host) {
       onSuccess:onConnect,
       timeout: 3,
       onFailure: function (message) {
-        console.log("FAILED", message)
-        console.log("TODO: retry")
+        paho_debug("FAILED", message)
+        console.error("FAILED TO CONNECT", message)
       }
     })
   }
@@ -39,11 +48,11 @@ export default function MQT(_host) {
   // called when the client connects
   // do subscriptions etc
   function onConnect() {
-    console.log("onConnect")
+    paho_debug("Connected")
 
     // initial connections
     _subs.forEach(([topic, callback]) => {
-      console.log("subscribing to " + topic)
+      paho_debug(`subscribing to ${topic}`)
       client.subscribe(topic)
     })
 
@@ -61,14 +70,17 @@ export default function MQT(_host) {
 
   // called when the client loses its connection
   function onConnectionLost(responseObject) {
+    paho_debug(`Connection lost ${responseObject.errorMessage}`)
     if (responseObject.errorCode !== 0) {
-      console.log(`Connection lost (${responseObject.errorMessage}) - reconnecting`)
+      paho_debug(`Reconnecting`)
       setTimeout(connect, 1000)
     }
   }
 
   // called when a message arrives
   function onMessageArrived(message) {
+    paho_debug(`Message Arrived`)
+
     const target = message.destinationName
     const payload = maybe_from_json(message.payloadString)
 
