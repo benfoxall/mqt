@@ -8,7 +8,10 @@
     <script src="mqt.js"></script>
     <script type="text/javascript">
 
-      var mqt = new MQT()
+      // var mqt = new MQT('ws://52.56.115.49:8083')
+      // var mqt = new MQT('ws://46.101.93.93:8083')
+
+      var mqt = new MQT('test.mosquitto.org:8080')
 
       mqt.subscribe('/foo', message => {
         console.log('MQT GOT', message)
@@ -17,15 +20,28 @@
       mqt.publish('/foo', {hello: "world"})
 
 
-      /*
-      mqt.subscribe('/time', message => {
-        console.log('TIMER', message)
-        console.timeEnd('message')
+
+      /* For testing round trip times
+
+      var key = Math.random().toString(16).substr(3,8)
+      var starts = new Map
+
+      mqt.subscribe(`/bounce-${key}`, (message) => {
+        var rt = Math.round(performance.now() - starts.get(message)) + 'ms'
+        console.log(rt)
+        starts.delete(message)
       })
 
-      console.time('message')
-      mqt.publish('/time', {hello: "world"})
+      mqt.publish('/time2', 'whoop')
+      let i = 1
+      setInterval(() => {
+        i++
+        starts.set(i, performance.now())
+        mqt.publish(`/bounce-${key}`, i)
+      }, 3000)
       */
+
+
 
     </script>
   </body>
