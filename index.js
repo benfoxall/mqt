@@ -1,5 +1,6 @@
 import Paho from './node_modules/paho-client/src/mqttws31.js'
 import debug from 'debug'
+import wildcard from './lib/wildcard-matcher.js'
 
 // enable with localStorage.debug = '*'
 const mtq_debug = debug('MQT')
@@ -81,14 +82,16 @@ export default function MQT(_host) {
   function onMessageArrived(message) {
     paho_debug(`Message Arrived`)
 
-    const target = message.destinationName
+    mtq_debug(`Message topic: ${message.destinationName}`)
+
+    const target = message.destinationName.split('/')
     const payload = maybe_from_json(message.payloadString)
 
-    _subs.forEach(([topic, callback]) => {
-      // todo: pattern match
-      if(topic == target)
+    _subs.forEach(([topic, callback, matcher]) => {
+      if(matcher(target)) {
+        mtq_debug(`Matched with topic ${topic}`)
         callback(payload)
-
+      }
     })
   }
 
@@ -102,7 +105,7 @@ export default function MQT(_host) {
 
   return {
     subscribe: (topic, callback) => {
-      _subs.push([topic, callback])
+      _subs.push([topic, callback, wildcard(topic)])
       if(client.isConnected()) {
         client.subscribe(topic)
       }

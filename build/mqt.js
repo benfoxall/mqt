@@ -2693,6 +2693,27 @@ function localstorage() {
 }
 });
 
+// returns a function that will match the given wildcard
+var wildcard = function (src) {
+  var parts = src.split('/');
+
+  return function (target) {
+
+    for (var i = 0; i < parts.length; i++) {
+      if(parts[i] == '#')
+        { return true }
+
+      if(parts[i] == '+')
+        { continue }
+
+      if(parts[i] != target[i])
+        { return false }
+    }
+
+    return parts.length == target.length
+  }
+};
+
 // enable with localStorage.debug = '*'
 var mtq_debug = browser$1('MQT');
 var paho_debug = browser$1('MQT:PAHO');
@@ -2776,17 +2797,20 @@ function MQT(_host) {
   function onMessageArrived(message) {
     paho_debug("Message Arrived");
 
-    var target = message.destinationName;
+    mtq_debug(("Message topic: " + (message.destinationName)));
+
+    var target = message.destinationName.split('/');
     var payload = maybe_from_json(message.payloadString);
 
     _subs.forEach(function (ref) {
       var topic = ref[0];
       var callback = ref[1];
+      var matcher = ref[2];
 
-      // todo: pattern match
-      if(topic == target)
-        { callback(payload); }
-
+      if(matcher(target)) {
+        mtq_debug(("Matched with topic " + topic));
+        callback(payload);
+      }
     });
   }
 
@@ -2800,7 +2824,7 @@ function MQT(_host) {
 
   return {
     subscribe: function (topic, callback) {
-      _subs.push([topic, callback]);
+      _subs.push([topic, callback, wildcard(topic)]);
       if(client.isConnected()) {
         client.subscribe(topic);
       }
