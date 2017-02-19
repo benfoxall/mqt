@@ -1,8 +1,8 @@
 {
   "name": "mqt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Like mqtt, but more succinct",
-  "main": "index.js",
+  "main": "build/mqt.js",
   "repository": "git@github.com:benfoxall/mqt.git",
   "author": "Ben Foxall <benfoxall@gmail.com>",
   "license": "MIT",
