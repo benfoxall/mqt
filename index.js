@@ -11,13 +11,15 @@ export default function MQT(_host) {
   const _subs = []
   const _outbox = []
 
+  const ssl = !!_host.match(/^wss:\/\//);
+
   const host_parts = _host.replace(/wss?:\/\//,'').split(':')
 
   var host = host_parts[0] || 'localhost'
-  var port = parseInt(host_parts[1]) || 8083
+  var port = parseInt(host_parts[1]) || (ssl?443:80)
   var clientID = 'mqt_' + Math.random().toString(32).substr(2,5)
 
-  mtq_debug(`Connecting to host=${host} port=${port}`)
+  mtq_debug(`Connecting to host=${host} port=${port} ssl?=${ssl}`)
 
   const client = new Paho.MQTT.Client(host, port, clientID)
 
@@ -27,17 +29,25 @@ export default function MQT(_host) {
 
   // connect the client
   function connect() {
-    client.connect({
-      onSuccess:onConnect,
-      timeout: 3,
-      onFailure: function (message) {
-        paho_debug("FAILED", message)
-        console.error("FAILED TO CONNECT", message)
-      }
+    return new Promise((accept, reject) => {
+      client.connect({
+        onSuccess: accept,
+        timeout: 3,
+        onFailure: reject,
+        useSSL: ssl,
+        mqttVersion: 4
+      })
     })
   }
 
-  connect()
+  const ready = connect()
+
+  ready
+    .then(onConnect)
+    .catch(message => {
+      paho_debug("FAILED", message)
+      console.error("FAILED TO CONNECT", message)
+    })
 
   const send = this._send = (topic, message) => {
     message = new Paho.MQTT.Message(message)
@@ -104,6 +114,7 @@ export default function MQT(_host) {
   }
 
   return {
+    ready: ready,
     subscribe: (topic, callback) => {
       _subs.push([topic, callback, wildcard(topic)])
       if(client.isConnected()) {

@@ -2723,13 +2723,15 @@ function MQT(_host) {
   var _subs = [];
   var _outbox = [];
 
+  var ssl = !!_host.match(/^wss:\/\//);
+
   var host_parts = _host.replace(/wss?:\/\//,'').split(':');
 
   var host = host_parts[0] || 'localhost';
-  var port = parseInt(host_parts[1]) || 8083;
+  var port = parseInt(host_parts[1]) || (ssl?443:80);
   var clientID = 'mqt_' + Math.random().toString(32).substr(2,5);
 
-  mtq_debug(("Connecting to host=" + host + " port=" + port));
+  mtq_debug(("Connecting to host=" + host + " port=" + port + " ssl?=" + ssl));
 
   var client = new mqttws31.MQTT.Client(host, port, clientID);
 
@@ -2739,17 +2741,25 @@ function MQT(_host) {
 
   // connect the client
   function connect() {
-    client.connect({
-      onSuccess:onConnect,
-      timeout: 3,
-      onFailure: function (message) {
-        paho_debug("FAILED", message);
-        console.error("FAILED TO CONNECT", message);
-      }
-    });
+    return new Promise(function (accept, reject) {
+      client.connect({
+        onSuccess: accept,
+        timeout: 3,
+        onFailure: reject,
+        useSSL: ssl,
+        mqttVersion: 4
+      });
+    })
   }
 
-  connect();
+  var ready = connect();
+
+  ready
+    .then(onConnect)
+    .catch(function (message) {
+      paho_debug("FAILED", message);
+      console.error("FAILED TO CONNECT", message);
+    });
 
   var send = this._send = function (topic, message) {
     message = new mqttws31.MQTT.Message(message);
@@ -2823,6 +2833,7 @@ function MQT(_host) {
   }
 
   return {
+    ready: ready,
     subscribe: function (topic, callback) {
       _subs.push([topic, callback, wildcard(topic)]);
       if(client.isConnected()) {
