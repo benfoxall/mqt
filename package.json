@@ -1,6 +1,6 @@
 {
   "name": "mqt",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Like mqtt, but more succinct",
   "main": "build/mqt.js",
   "repository": "git@github.com:benfoxall/mqt.git",
